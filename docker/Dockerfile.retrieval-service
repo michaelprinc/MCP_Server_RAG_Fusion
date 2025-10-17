@@ -1,0 +1,44 @@
+# ============================================
+# Multi-stage Dockerfile for Retrieval Service
+# ============================================
+
+# Stage 1: Base image with minimal dependencies
+FROM python:3.11-slim as base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Stage 2: Dependencies installation
+FROM base as dependencies
+
+COPY services/retrieval-service/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Pre-download models to cache them
+RUN python -c "from sentence_transformers import CrossEncoder; CrossEncoder('BAAI/bge-reranker-v2-m3')" && \
+    python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+
+# Stage 3: Application layer
+FROM dependencies as application
+
+# Copy server module (contains retriever, fusion, router, etc.)
+COPY server/ /app/server/
+
+# Copy service application
+COPY services/retrieval-service/app.py /app/
+
+ENV PYTHONPATH=/app
+
+EXPOSE 8081
+
+HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
+    CMD curl -f http://localhost:8081/health || exit 1
+
+CMD ["python", "app.py"]

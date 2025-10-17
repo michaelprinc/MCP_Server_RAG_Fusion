@@ -1,0 +1,53 @@
+# Prometheus configuration for RAG-Fusion microservices
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'rag-fusion-dev'
+    environment: 'docker-compose'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Scrape configurations
+scrape_configs:
+  # MCP Gateway Service
+  - job_name: 'mcp-gateway'
+    static_configs:
+      - targets: ['mcp-gateway:8080']
+        labels:
+          service: 'mcp-gateway'
+          component: 'protocol-handler'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Retrieval Service
+  - job_name: 'retrieval-service'
+    static_configs:
+      - targets: ['retrieval-service:8081']
+        labels:
+          service: 'retrieval-service'
+          component: 'rag-engine'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Indexer Service
+  - job_name: 'indexer-service'
+    static_configs:
+      - targets: ['indexer-service:8082']
+        labels:
+          service: 'indexer-service'
+          component: 'pdf-processor'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'

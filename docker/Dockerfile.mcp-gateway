@@ -1,0 +1,37 @@
+# ============================================
+# Multi-stage Dockerfile for MCP Gateway Service
+# ============================================
+
+# Stage 1: Base image
+FROM python:3.11-slim as base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Stage 2: Dependencies installation
+FROM base as dependencies
+
+COPY services/mcp-gateway/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 3: Application layer
+FROM dependencies as application
+
+# Copy service application
+COPY services/mcp-gateway/app.py /app/
+
+ENV PYTHONPATH=/app
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=10s --timeout=2s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+CMD ["python", "app.py"]

@@ -1,0 +1,38 @@
+version: "3.9"
+
+volumes:
+  rag_data:
+    driver: local
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.server
+    container_name: rag_server
+    environment:
+      PORT: "8080"
+      INDEX_DIR: /data/indexes
+      MODEL_CONFIG: /app/configs/model-config.yml
+      MCP_TOOLS: /app/configs/mcp-tools.json
+      ROUTER_MODE: classifier
+      LOG_LEVEL: INFO
+      CACHE_SIZE: "1000"
+    volumes:
+      - ./data:/data:ro
+      - ./configs:/app/configs:ro
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - rag_network
+
+networks:
+  rag_network:
+    driver: bridge

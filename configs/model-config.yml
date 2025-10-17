@@ -1,0 +1,46 @@
+embeddings:
+  text:
+    model: BAAI/bge-m3
+    dimensions: 1024
+    device: cpu
+    batch_size: 32
+  image:
+    enabled: false
+    model: openai/clip-vit-base-patch32
+    dimensions: 512
+
+retrieval:
+  bm25:
+    k1: 1.5
+    b: 0.75
+  faiss:
+    index_type: IVF_PQ
+    nlist: 100
+    m: 8
+    nbits: 8
+  fusion:
+    fact_weight: 0.6
+    example_weight: 0.4
+    bm25_weight: 0.3
+    dense_weight: 0.7
+
+reranker:
+  model: BAAI/bge-reranker-v2-m3
+  batch_size: 16
+  top_k: 10
+
+router:
+  mode: classifier
+  classifier:
+    model: sentence-transformers/all-MiniLM-L6-v2
+    threshold: 0.7
+  mini_llm:
+    model: Phi-3-mini
+    temperature: 0.1
+    max_tokens: 100
+
+caching:
+  enabled: true
+  type: lru
+  max_size: 1000
+  ttl_seconds: 3600

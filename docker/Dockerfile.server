@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements-server.txt .
+RUN pip install --no-cache-dir -r requirements-server.txt
+
+COPY server/ ./server/
+COPY configs/ ./configs/
+
+# Pre-download models to speed up container startup
+RUN python -c "from sentence_transformers import CrossEncoder; CrossEncoder('BAAI/bge-reranker-v2-m3')" && \
+    python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+
+ENV PYTHONPATH=/app
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=10s --timeout=2s --retries=3 CMD curl -f http://localhost:8080/health || exit 1
+
+CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -1,0 +1,3 @@
+{"query": "What is the maximum operating pressure?", "expected_sections": ["2.1"], "type": "factual"}
+{"query": "How do I bleed the hydraulic pump after a long shutdown?", "expected_sections": ["3.4"], "type": "hybrid", "must_include_example": true}
+{"query": "What are common mistakes during maintenance?", "type": "experiential"}

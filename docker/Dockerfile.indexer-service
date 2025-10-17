@@ -1,0 +1,52 @@
+# ============================================
+# Multi-stage Dockerfile for Indexer Service
+# ============================================
+
+# Stage 1: Base image with system dependencies
+FROM python:3.11-slim as base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Install system dependencies for PDF processing and OCR
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    libtesseract-dev \
+    libleptonica-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Stage 2: Dependencies installation
+FROM base as dependencies
+
+COPY services/indexer-service/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Pre-download embedding models to speed up startup
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-m3')"
+
+# Stage 3: Application layer
+FROM dependencies as application
+
+# Copy indexer module
+COPY indexer/ /app/indexer/
+
+# Copy service application
+COPY services/indexer-service/app.py /app/
+
+# Create data directories
+RUN mkdir -p /data/pdf /data/artifacts /data/indexes
+
+ENV PYTHONPATH=/app
+
+EXPOSE 8082
+
+HEALTHCHECK --interval=15s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:8082/health || exit 1
+
+CMD ["python", "app.py"]

@@ -1,0 +1,88 @@
+{
+  "tools": [
+    {
+      "name": "search_manual",
+      "description": "Search technical documentation and usage examples",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query in natural language"
+          },
+          "top_k": {
+            "type": "integer",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 50
+          },
+          "include_examples": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include practical usage examples"
+          },
+          "min_confidence": {
+            "type": "number",
+            "default": 0.5,
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "get_chunk_details",
+      "description": "Retrieve full content of specific chunks by ID",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "chunk_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["chunk_ids"]
+      }
+    },
+    {
+      "name": "open_pdf_page",
+      "description": "Get URI to view specific page in source PDF",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["document_id", "page"]
+      }
+    },
+    {
+      "name": "list_indexed_documents",
+      "description": "List indexed document sets and statistics",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "document://{document_id}",
+      "name": "Technical Document",
+      "description": "Access indexed technical documents"
+    },
+    {
+      "uri": "chunk://{chunk_id}",
+      "name": "Document Chunk",
+      "description": "Access specific document chunk with metadata"
+    }
+  ]
+}
