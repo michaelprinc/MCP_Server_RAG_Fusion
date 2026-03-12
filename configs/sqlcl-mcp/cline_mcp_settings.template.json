@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sqlcl": {
+      "type": "stdio",
+      "command": "C:/PATH/TO/sqlcl/bin/sql.exe",
+      "args": [
+        "-mcp"
+      ],
+      "disabled": false,
+      "timeout": 120
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "SQLcl MCP Ops"
+  short_description: "Run and tune SQLcl MCP workflows in 2026."
+  default_prompt: "Validate SQLcl MCP startup, protocol handshake, tools/list output, and client timeout settings with production-safe defaults."
